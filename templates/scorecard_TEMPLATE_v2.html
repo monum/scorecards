@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="js/d3Star.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+
+<style type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet" type="text/css" />
+<link href='https://fonts.googleapis.com/css?family=Lora:400italic' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Montserrat:400' rel='stylesheet' type='text/css'>
+  svg {
+    font: 10px sans-serif;
+    shape-rendering: crispEdges;
+  }
+
+
+body {font: 10px sans-serif;}
+
+    .header-img {
+      width: 95%; height: 400px;
+      margin-top:10px; margin-left:10px;
+      padding:10px;
+      background: 
+        linear-gradient(
+          rgba(00, 44, 85, 0.65), 
+          rgba(00, 44, 85, 0.65)
+        ),url("imgs/IMG_1344_bw.jpg");
+      background-size: cover;
+    }
+    .row:after {content: ""; display: table; clear: both; }
+
+    /* Create two equal columns that floats next to each other */
+    .columnL1 {
+      float: left;
+      width: 60%;
+      padding: 0px;
+    }
+
+    .columnR1 {
+      float: left;
+      width: 25%;
+      padding: 10px;
+    }
+
+    .columnL2 {
+      float: left;
+      width: 85%;
+      padding: 10px;
+    }
+
+    .columnL3 {
+      float: left;
+      width: 58%;
+      padding: 10px;
+    }
+
+    .columnR3 {
+      float: left;
+      width: 25%;
+      padding: 20px;
+    }
+
+
+/* Create two equal columns that floats next to each other */
+    .footercolumnL {
+      float: left;
+      width: 35%;
+      padding: 50px;
+      font-family:Lora;
+      font: 14px lora;
+      font-style: italic;
+      height: 150px; /* Should be removed. Only for demonstration */
+    }
+    .footercolumnL2 {
+      float: left;
+      width: 27%;
+      padding: 50px;
+      font-family:Lora;
+      font: 14px lora;
+      font-style: italic;
+      height: 150px; /* Should be removed. Only for demonstration */
+    }
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bar {
+  fill: #49799b;
+}
+
+.bar:hover {
+  fill: #308de1 ;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+
+    .new1 {
+      border-top: 4px solid #585858;
+    }
+</style>
+
+
+<body>
+  <div id="head" class="header-img">
+    <p style="margin-top: 10px;"> </p>
+    <p><img style="margin-left:80px; margin-right:40px; float: left; margin-top:30px;" src="imgs/COB_B_Blue_wName_reverse.eps" width="160"/></p>
+    <p id="head_txt"></p>
+    <p id="pname_txt"></p>
+  </div>  
+  <b></b>
+  <div class="row" id="introtxt" style="font-family:Lora; font-size:18px"></div>
+  <div class="row">
+    <div class="columnL1">
+    <div id="plothead"></div>
+    </div>
+    <div class="columnR1">
+        <div id="pctred"> </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="columnL2">
+    <div id="plot"></div>
+    </div>
+  </div>
+ <div class="row">
+    <div class="columnL3">
+    <div id="plotcaveats"></div>
+      <hr class="new1"></hr>
+    <div id="guidance"></div>
+    </div>
+    <div class="columnR3">
+      <div id="savings"></div>
+      <div id="energystar"></div>
+    </div>
+  </div>
+  <div class="row:after"></div>
+  <div class="row" >
+    <div id="footer_questions" class="footercolumnL" >‡ If you have questions regarding the accuracy of your building’s energy data or are missing years of energy data, please contact us. <a href="url">energyreporting@boston.gov</a> | 617-635-3850 <b style='font-style: normal;'><u>boston.gov/berdo</u></b></div>
+    <div class="footercolumnL2" >To learn more about what the City of Boston is doing to reduce carbon pollution and address climate change, visit <b style='font-style: normal;'><u>boston.gov/environment</u></b></div>
+  </div>
+
+
+<script>
+
+  ///SET VARIABLES FOR SCORECARD
+  var gfa='TEMPLATE_GFA';
+  var addr='TEMPLATE_ADDRESS';
+  var bid='TEMPLATE_BID';
+  var propertyname='TEMPLATE_NAME';
+  var propertyid='TEMPLATE_PID';
+  var parcelnumber='TEMPLATE_PARCEL_NUM';
+  var primarypropertytype='TEMPLATE_PROPERTY_TYPE';
+  var pctreduction='TEMPLATE_PCT_REDUCTION'
+  var baseyeareui='TEMPLATE_EUI_BASE_YEAR'
+  var goal=+baseyeareui*.85;
+  var savings="12,400"
+  var esyear=TEMPLATE_YEAR_ESS; //Year of most recent energy star score
+  var ESS=TEMPLATE_ESS;
+  var ESS_avg=TEMPLATE_AVG_ESS
+
+  ///DATA FOR SCORECARD
+  var data = [
+    { barloc: '1', year: "2014", EUI:'TEMPLATE_EUI_14'},
+    { barloc: '2',year: "2015", EUI:'TEMPLATE_EUI_15'},
+    { barloc: '3',year: "2016", EUI:'TEMPLATE_EUI_16'},
+    { barloc: '4',year: "2017", EUI:'TEMPLATE_EUI_17'},
+    { barloc: '5',year: "2018",EUI:'TEMPLATE_EUI_18'},
+    { barloc: '6', EUI:'TEMPLATE_EUI_PT_AVG'},
+  ];
+
+  // HEADER
+  //const logoPath = 'imgs/COB_B_Blue_wName_reverse.eps';
+  //d3.select("#head").append('img').attr('src', logoPath).attr('x', -9).attr('y', -12).attr('width', "8%");
+  d3.select("#head").append('p').text('2018 ENERGY PERFORMANCE AND SAVINGS POTENTIAL').style('color', '#ffffff').style("font-size", "62px").style("font-family", "Montserrat, sans-serif").style("font-weight", "bold").style("width","95%").style('margin-top','28px').style('margin-left','10px').style('margin-bottom','10px').style('line-height','1');
+
+  d3.select("#head").append('p').text('for '+propertyname).style('color', '#ffffff').style("font-size", "42px").style("font-family", "Lora").style("font-style", "italic").style("width","70%").style("margin-top","0").style('float','left');
+
+  d3.select("#head").append('p').text('Address: '+addr+' | Square Feet: '+gfa+'  | Building Type: '+primarypropertytype+'  | BERDO ID #: '+bid).style('color', '#ffffff').style("font-size", "18px").style("font-family", "Lora").style("font-style", "italic").style("font-weight", "bold").style("width","75%").style('margin-top','40px').style('margin-left','40px')
+
+ //Intro Text 
+  d3.select("#introtxt").append('p').text('Thank you for benchmarking your building’s energy performance with the City of Boston! This snapshot provides feedback on your building’s year to year performance, how it compares to similar buildings, and your annual savings potential.').style('color', '#585858').style("font-size", "22px").style("font-family", "Lora").style("font-weight", "regular").style("width","80%");
+
+  // PLOT SECTION
+  d3.select("#plothead").append('p').text("Your Building’s Energy Use from 2014 – 2018").style('color', '#585858').style("font-size", "22px").style("font-family", "Montserrat, sans-serif").style("font-weight", "bold").style("width","80%").style('margin-top','40px').style('margin-left','40px')
+
+
+var margin = {top: 30, right: 550, bottom: 80, left: 100},
+    //width = 960 - margin.left - margin.right,
+    width = 1256 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+var formateui = d3.format(".2s");
+
+var star = d3Star();
+
+var svg = d3.select("#plot")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+var color = d3.scale.ordinal().range(["#49799b", "#49799b", "#49799b", "#49799b","#49799b","#002755"]);
+
+
+/* Data in strings like it would be if imported from a csv */
+//2014, 2015, 2016, 2017, 2018, Avg
+//var data=[109.4,107.4,78.3,63.1,63.4,74.3]
+
+function wrap(text, width) {
+  text.each(function() {
+    var text = d3.select(this),
+        words = text.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        y = text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em")
+    while (word = words.pop()) {
+      line.push(word)
+      tspan.text(line.join(" "))
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop()
+        tspan.text(line.join(" "))
+        line = [word]
+        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", `${++lineNumber * lineHeight + dy}em`).text(word)
+      }
+    }
+  })
+}
+
+
+
+
+var x = d3.scale.ordinal()
+    .domain(data.map(function(d) { return d.barloc; }))
+    .rangeRoundBands([0, width], .1);
+
+var y = d3.scale.linear()
+//  .domain([0, 120])
+    .domain([0, d3.max(data, function(d) { return +d.EUI; })])
+    .range([height, 0]);
+
+//console.log(d3.max(data, function(d) { return d.EUI; }));
+
+var axislabels=[2014,2015,2016,2017,2018,'Average Boston '+primarypropertytype]
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .tickFormat(function(d){return axislabels[d-1];})
+    .tickPadding(10);
+
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .tickFormat(formateui);
+
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    return "<strong>EUI[kBTU/sqft]</strong> <span style='color:orange'>" + d.EUI + "</span>";
+  })
+
+svg.call(tip);
+
+
+var greyBox = svg.append("rect")
+    .attr("x", 0).attr("y", function(d) { return y(goal); })
+    .attr("width", width).attr("height", function(d) { return height -y(goal);})
+    .attr("fill", "#dddddd").attr("opacity", 1);
+
+    svg.append('line')
+    .style("stroke", "#dcdcdc").style("stroke-width", 6)
+    .attr("x1", 0).attr("y1",function(d) { return y(goal);})
+    .attr("x2", width*1.15).attr("y2", function(d) { return y(goal);}); 
+  
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .style("font-size",16)
+      .style("font-family", "Montserrat, sans-serif")
+      .call(xAxis)
+      .selectAll(".tick text")
+      .call(wrap, 86);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .style("font-size",16)
+      .style("font-family", "Montserrat, sans-serif")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("x",-(height / 4))
+      .attr("y", -60)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Energy Use Intensity [kBTU/sqft]");
+
+
+
+  svg.selectAll(".bar")
+      .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return x(d.barloc)+5; })
+      .attr("width", x.rangeBand()-10)
+      .attr("y", function(d) { return y(d.EUI); })
+      .attr("height", function(d) { return height - y(d.EUI); })
+      .style("fill", function(d) {            // <== Add these
+            if (d.barloc == 6) {return "#002755"} ;})
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
+      ;
+//Add the SVG Text Element to the svgContainer
+var text = svg.selectAll("bar")
+                       .data(data)
+                       .enter()
+                       .append("text");
+
+//Add the text attributes
+var textLabels = text
+                .attr("x", function(d) { return x(d.barloc)+15; })
+                .attr("y", function(d) { return height-50; })
+                .text( function (d) { 
+            if (d.EUI <= 0) {return "Data"}; })
+                .attr("font-family", "Montserrat, sans-serif")
+                .attr("font-size", "20px")
+                .attr("fill", "#585858");
+
+
+var text2 = svg.selectAll("bar")
+                        .data(data)
+                       .enter()
+                       .append("text");
+
+  var textLabels2 = text2
+                  .attr("x", function(d) { return x(d.barloc)+15; })
+                  .attr("y", function(d) { return height-25; })
+                  .html( function (d) { 
+              if (d.EUI <= 0) {return "Missing &Dagger;"}; })
+                  .attr("font-family", "Montserrat, sans-serif")
+                  .attr("font-size", "20px")
+                  .attr("fill", "#585858");
+
+//.style("background-color", function(d, i) { return color(i);})
+
+
+
+// Add star
+//star.x(width+115).y(height*.14).size(50).value(1.0).starColor("#67AED3").borderWidth(0);
+//svg.call(star);
+
+
+// ADD IN 5 YEAR GOAL AND COST SAVINGS 
+
+  // 5 YEAR GOAL STAR
+  //const starimagePath = 'imgs/star.png';
+  //svg.append('svg:image').attr('src', starimagePath).attr('x', width+125).attr('y', 50).attr('width', 50).attr("dy", "10").style('margin','0').style('padding','10px');
+
+    svg.append("text")
+      .attr("x", width+125).attr("y", function(d) { return y(goal)+25;}).attr("dy", "10")
+      .style("font-size","20px").style("font-family", "Montserrat, sans-serif").style("font-weight", "bold").style('fill', '#308de1')
+      .text("5-Year Goal: 15% reduction");
+
+    svg.append("text")
+      .attr("x", width+125).attr("y",function(d) { return y(goal)+45;}).attr("dy", "10")
+      .style("font-size",18).style("font-family", "Montserrat, sans-serif")
+      .style('margin','10').style('padding','14px').style('fill', '#585858')
+      .text("in energy use from 2014 levels");
+
+
+    svg.append("text")
+      .attr("x", width+125).attr("y", function(d) { return y(goal)+70;}).attr("dy", "10")
+      .style("font-size","16px").style("font-family", "Montserrat, sans-serif").style("font-weight", "regular")
+      .style('margin','0').style('padding','14px').style('fill', '#585858')
+      .text("Reach this goal and you’ll save");
+
+    svg.append("text")
+      .attr("x", width+125)
+      .attr("y", function(d) { return y(goal)+110;})
+      .attr("dy", "10")
+      .style("font-size","40px")
+      .style("font-family", "Montserrat, sans-serif")
+      .style("font-weight", "bold")
+      .style('margin','0')
+      .style('padding','10px')
+      .text("$"+savings+"/YR**")
+      .style('fill','#308de1');
+
+//svg.append('img').attr('src', 'imgs/star.png').attr('x', width+125).attr('y', 80).attr('width', 50).style('margin','10').style('padding','10px');
+var myimage = svg.append('svg:image')
+    .attr('xlink:href', 'imgs/star.png')
+    .attr("x", width+115)
+    .attr("y", function(d) { return y(goal)-35;})
+    .attr('width', 50)
+    .attr('height', 50);
+
+
+// END SECTION ON PERCENT REDUCTION
+
+// Caveats
+  d3.select("#plotcaveats").append('p').text('* Energy Use Intensity (EUI) is annual energy use (all fuel types) per square foot. kBtu represents 1,000 British Thermal Units, and is a way to track building energy use that converts electricity, gas, and fuel oil used, which are each measured in different units, into common units.').style('color', '#585858').style("font-size", "16px").style("font-family", "Lora").style("font-style", "italic").style("width","80%").style('margin-left','30px');
+  d3.select("#plotcaveats").append('p').text('** Reductions could come from a combination of measures across energy sources including electric, gas, and fuel oil. Savings estimate based on average gas, electric, and steam rates – actual savings rates may vary.').style('color', '#585858').style("font-size", "16px").style("font-family", "Lora").style("font-style", "italic").style("width","80%").style('margin-left','30px');
+
+  // GUIDANCE
+  d3.select("#guidance").append('p').text("For free guidance to reduce your energy use and save money, make an appointment with a savings specialist or call 617-635-3850").style('color', '#585858').style("font-size", "28px").style("font-family", "Montserrat, sans-serif").style("font-weight", "bold").style("width","90%");
+
+    // Percent reduction
+  d3.select("#pctred").append('p').text("Your building has").style('color', '#585858').style("font-size", "18px").style("font-family", "Montserrat, sans-serif").style("font-weight", "regular").style("width","70%").style('margin-bottom','0px');
+  d3.select("#pctred").append('p').text("increased its energy use by").style('color', '#585858').style("font-size", "18px").style("font-family", "Montserrat, sans-serif").style("font-weight", "regular").style("width","70%").style('margin-top','0px').style('margin-bottom','0px');
+  d3.select("#pctred").append('text').text(pctreduction+"%").style('color', '#C53132').style("font-size", "54px").style("font-family", "Montserrat, sans-serif").style("font-weight", "bold").style("width","100%").attr("dy", "8").style('margin-top','0px');
+  d3.select("#pctred").append('text').text(" since 2014.").style('color', '#585858').style("font-size", "18px").style("font-family", "Montserrat, sans-serif").style("font-weight", "regular").style("width","100%").attr("dy", "10");
+
+  //ENERGY STAR SCORE
+  const esimagePath = 'imgs/energy-star-5-logo-png-transparent copy_gray copy.png';
+  d3.select("#energystar").append('img').attr('src', esimagePath).attr('x', -9).attr('y', -12).attr('width', "20%");
+  d3.select('#energystar').append('p').text("Your "+esyear+" ENERGY STAR Score is").style('color', '#585858').style("font-size", "12px").style("font-family", "Montserrat, sans-serif").style("font-weight", "regular").style("width","100%").attr("dy", "10").style('margin','0');
+  d3.select('#energystar').append('p').text(ESS+"/100").style('color', '#585858').style("font-size", "50px").style("font-family", "Montserrat, sans-serif").style("font-weight", "bold").attr("dy", "10").style('margin','0').style("width","100%");
+  d3.select('#energystar').append('p').text("(0 is least efficient, 100 is most efficient). The average score for your building type in Boston is "+ESS_avg).style('color', '#585858').style("font-size", "14px").style("font-family", "Montserrat, sans-serif").style("font-weight", "regular").style("width","70%");
+
+</script>
