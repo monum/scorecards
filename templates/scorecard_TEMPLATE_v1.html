@@ -191,7 +191,8 @@ body {font: 10px sans-serif;}
   var goal=+baseyeareui*.85;
   var esyear=TEMPLATE_YEAR_ESS; //Year of most recent energy star score
   var ESS=TEMPLATE_ESS;
-  var ESS_avg=TEMPLATE_AVG_ESS
+  var ESS_avg=TEMPLATE_AVG_ESS;
+  var esavings='TEMPLATE_ESTIMATED_SAVINGS';
 
   ///DATA FOR SCORECARD
   var data = [
@@ -425,7 +426,7 @@ var text2 = svg.selectAll("bar")
       .style("font-weight", "bold")
       .style('margin','0')
       .style('padding','10px')
-      .text("$12,300/YR**")
+      .text("$"+esavings+"/YR**")
       .style('fill','#308de1');
 
 //svg.append('img').attr('src', 'imgs/star.png').attr('x', width+125).attr('y', 80).attr('width', 50).style('margin','10').style('padding','10px');
