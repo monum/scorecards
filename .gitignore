@@ -129,3 +129,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# BERDO Scorecards
+Scorecards/BERDO_scorecard*
